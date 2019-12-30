@@ -1,17 +1,23 @@
 FROM ubuntu:focal
+
+#Update packages
 RUN apt-get update
-RUN apt-get -y install wget git sudo
+RUN apt-get -y install wget git sudo apt-utils git gcc g++ cmake python make ninja-build qt5-default gdb valgrind tcpdump curl unzip tar ccache
 RUN mkdir actions-runner && cd actions-runner
+
+#Download GitHub runner files
 RUN cd actions-runner && wget https://githubassets.azureedge.net/runners/2.163.1/actions-runner-linux-x64-2.163.1.tar.gz
 RUN cd actions-runner && tar xzf ./actions-runner-linux-x64-2.163.1.tar.gz
 
 RUN groupadd -g 999 appuser && useradd -r -u 999 -g appuser appuser
 USER appuser
 
+#Install GitHub runner dependencies
 RUN cd actions-runner && chmod +x ./*
 ENV AGENT_ALLOW_RUNASROOT="1"
 RUN cd actions-runner && ./bin/installdependencies.sh
 
+#Configure and run GitHub runner
 ARG GITHUB_REPO_URL  
 ARG GITHUB_REPO_TOKEN 
 #RUN echo "${GITHUB_REPO_URL} <> ${GITHUB_REPO_TOKEN}"

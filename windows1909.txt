@@ -1,13 +1,33 @@
-FROM mcr.microsoft.com/windows:1909
+FROM mcr.microsoft.com/windows:1909 
 
-RUN mkdir actions-runner && cd actions-runner
-RUN cd actions-runner && powershell Invoke-WebRequest -Uri https://githubassets.azureedge.net/runners/2.163.1/actions-runner-win-x64-2.163.1.zip -OutFile actions-runner-win-x64-2.163.1.zip
-RUN cd actions-runner && powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("""actions-runner-win-x64-2.163.1.zip""", """.\\""")"
-RUN powershell Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.24.1.windows.2/Git-2.24.1.2-64-bit.exe -OutFile git.exe
-RUN git.exe /VERYSILENT
+#Download and extract GitHub runner code
+RUN mkdir actions-runner && \
+  cd actions-runner && \
+  powershell Invoke-WebRequest -Uri https://githubassets.azureedge.net/runners/2.163.1/actions-runner-win-x64-2.163.1.zip -OutFile actions-runner-win-x64-2.163.1.zip && \
+  powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("""actions-runner-win-x64-2.163.1.zip""", """.\\""")" 
+  
+#Install Git
+RUN cd actions-runner && \
+  powershell -Command "Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.24.1.windows.2/Git-2.24.1.2-64-bit.exe -OutFile git.exe" && \
+  git.exe /VERYSILENT && \
+  del .\git.exe 
+
+#Clone base Msys2
+RUN cd actions-runner && \
+  git clone https://github.com/msys2/msys2-ci-base.git msys64 && \
+  .\msys64\usr\bin\rm -rf .\msys64\.git && \
+  start ".\msys64\usr\bin\pacman --noconfirm -Syyuu" cmd "/c timeout 50 && taskkill.exe /f /im pacman.exe" 
+
+#Update and install msys2 packages
+RUN cd actions-runner && \
+  .\msys64\usr\bin\pacman --noconfirm --needed -S base-devel && \
+  .\msys64\usr\bin\pacman -S --noconfirm unzip tar mingw-w64-x86_64-curl mingw-w64-x86_64-binutils mingw-w64-x86_64-boost mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-ninja mingw-w64-x86_64-gcc-libs mingw-w64-x86_64-gcc-objc mingw-w64-x86_64-gdb mingw-w64-x86_64-make mingw-w64-x86_64-python2 mingw-w64-x86_64-python3 mingw-w64-x86_64-qt5 && \
+  .\msys64\usr\bin\pacman --noconfirm -Scc
+
 ARG GITHUB_REPO_URL  
 ARG GITHUB_REPO_TOKEN 
 #RUN echo "%GITHUB_REPO_URL% <> %GITHUB_REPO_TOKEN%"
 
+#Configure and run GitHub runner
 RUN cd actions-runner && powershell ./config.cmd --url %GITHUB_REPO_URL% --token %GITHUB_REPO_TOKEN%
 CMD cd actions-runner && powershell ./run.cmd
