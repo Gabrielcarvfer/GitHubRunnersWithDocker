@@ -1,7 +1,7 @@
 GitHub runners with Docker (with Hyper-V isolation)
 ===========================
 
-Start by cloning the repo, then create a .env file with the following:
+Start by cloning the repo, then create a `.env` file with the following:
 
 ```
 GITHUB_REPO_URL=https://github.com/your_use_name/your_repo
