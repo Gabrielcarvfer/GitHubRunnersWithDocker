@@ -13,7 +13,7 @@ You will probably need to manually update the runners and Git for Windows instal
 
 To build the docker images, run:
 ```
-docker-compose up (-d to run as deamon)
+docker-compose up (-d to run as deamon, --build to rebuild the images)
 ```
 
 To start the runners, run:
