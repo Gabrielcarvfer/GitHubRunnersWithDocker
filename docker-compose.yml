@@ -1,4 +1,4 @@
-version: '3.7'
+version: '2.1'
 services:
     githubrunnerwindows:
       container_name: githubrunnerwindows
@@ -9,10 +9,7 @@ services:
         args:
           GITHUB_REPO_URL:   ${GITHUB_REPO_URL}
           GITHUB_REPO_TOKEN: ${GITHUB_REPO_TOKEN_WINDOWS}
-      deploy:
-        resources:
-          limits:
-            memory: 2GB
+      mem_limit: 8GB
     githubrunnerlinux:
       container_name: githubrunnerlinux
       isolation: "hyperv"
@@ -22,7 +19,4 @@ services:
         args:  
           GITHUB_REPO_URL:   ${GITHUB_REPO_URL}
           GITHUB_REPO_TOKEN: ${GITHUB_REPO_TOKEN_LINUX}
-      deploy:
-        resources:
-          limits:
-            memory: 2GB
+      mem_limit: 8GB
