@@ -1,0 +1,19 @@
+FROM ubuntu:focal
+RUN apt-get update
+RUN apt-get -y install wget git sudo
+RUN mkdir actions-runner && cd actions-runner
+RUN cd actions-runner && wget https://githubassets.azureedge.net/runners/2.163.1/actions-runner-linux-x64-2.163.1.tar.gz
+RUN cd actions-runner && tar xzf ./actions-runner-linux-x64-2.163.1.tar.gz
+
+RUN groupadd -g 999 appuser && useradd -r -u 999 -g appuser appuser
+USER appuser
+
+RUN cd actions-runner && chmod +x ./*
+ENV AGENT_ALLOW_RUNASROOT="1"
+RUN cd actions-runner && ./bin/installdependencies.sh
+
+ARG GITHUB_REPO_URL  
+ARG GITHUB_REPO_TOKEN 
+#RUN echo "${GITHUB_REPO_URL} <> ${GITHUB_REPO_TOKEN}"
+RUN cd actions-runner && ./config.sh --url ${GITHUB_REPO_URL} --token ${GITHUB_REPO_TOKEN}
+CMD cd actions-runner && ./run.sh
